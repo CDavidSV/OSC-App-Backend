@@ -6,7 +6,7 @@ const port = 3000;
 // Mongo URI
 const MONGO_URI = process.env.MONGO_URI as string;
 
-// Main server function
+// Main server functiona
 const main = async () => {
     await connectMongoDB(MONGO_URI);
 
