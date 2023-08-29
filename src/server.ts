@@ -18,10 +18,4 @@ app.use(logger);
 // Register routes
 app.use(routes);
 
-declare module "express" {
-    export interface Request {
-        user: any;
-    }
-}
-
 export default app;
