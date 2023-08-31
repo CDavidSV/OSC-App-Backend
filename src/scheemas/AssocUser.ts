@@ -6,7 +6,7 @@ const AssocUserSchema = new Schema({
     email: { type: String, required: true },
     passwordHash: { type: String, required: true },
     passwordSalt: { type: String, required: true },
-    profilePictureURL: { type: String },
+    profilePictureURL: { type: String, default: null },
 });
 
 AssocUserSchema.index({ userId: 1 });

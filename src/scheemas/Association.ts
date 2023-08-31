@@ -1,21 +1,21 @@
 import { Schema, model } from "mongoose";
 
 const AssociationSchema = new Schema({
-    _id: { type: String, required: true },
+    _id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
-    description: { type: String },
-    logoURL: { type: String },
-    images: { type: [String] },
-    thumbnailURL: { type: String },
-    websiteURL: { type: String },
-    facebookURL: { type: String },
-    instagramURL: { type: String },
-    category: { type: String, required: true },
-    tags: { type: [String] },
+    description: { type: String, default: null },
+    logoURL: { type: String, default: null },
+    images: { type: [String], default: [] },
+    thumbnailURL: { type: String, default: null },
+    websiteURL: { type: String, default: null },
+    facebookURL: { type: String, default: null },
+    instagramURL: { type: String, default: null },
+    categoryId: { type: String, required: true },
+    tags: { type: [String], default: [] },
     contact : {
         email: { type: String, required: true },
         phone: { type: String, required: true },
-        whatsapp: { type: String },
+        whatsapp: { type: String, default: null },
     },
     address: { type: String, required: true },
     rating: { type: Number, required: true }
