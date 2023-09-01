@@ -1,6 +1,10 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 
+function generateToken(payload: any, expirationDelta: number) {
+    return jwt.sign(payload, process.env.ACCESS_TOKEN_KEY as string, { expiresIn: expirationDelta })
+}
+
 /**
  * Authenticate an access token
  * @param req 
@@ -21,5 +25,6 @@ const authenticateAccessToken = (req: Request, res: Response, next: NextFunction
 }
 
 export {
-    authenticateAccessToken
+    authenticateAccessToken,
+    generateToken
 };
