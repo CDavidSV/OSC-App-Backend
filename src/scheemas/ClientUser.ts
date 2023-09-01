@@ -9,5 +9,5 @@ const ClientUserSchema = new Schema({
     AssociationsHistory: { type: [String], default: [] }
 });
 
-ClientUserSchema.index({ userId: 1 });
+ClientUserSchema.index({ phoneNumber: 1 });
 export default model("ClientUser", ClientUserSchema);
