@@ -1,9 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-
-function generateToken(payload: any, expirationDelta: number) {
-    return jwt.sign(payload, process.env.ACCESS_TOKEN_KEY as string, { expiresIn: expirationDelta })
-}
+import { User } from "../Models/interfaces";
 
 /**
  * Authenticate an access token
@@ -16,15 +13,15 @@ const authenticateAccessToken = (req: Request, res: Response, next: NextFunction
     const token = authHeader && authHeader?.substring(7);
     if (!token) return res.sendStatus(401);
 
-    jwt.verify(token,"123", (err, user) => {
+    jwt.verify(token, process.env.ACCESS_TOKEN_KEY as string, (err, user) => {
+        if ((user as User).refresh) return res.sendStatus(403);
         if (err) return res.sendStatus(403);
-        req.user = user;
-        
+
+        req.user = user as User;
         next();
     });
 }
 
 export {
     authenticateAccessToken,
-    generateToken
 };

@@ -1,7 +1,6 @@
 import { Schema, model } from "mongoose";
 
 const AssociationSchema = new Schema({
-    _id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     description: { type: String, default: null },
     logoURL: { type: String, default: null },
