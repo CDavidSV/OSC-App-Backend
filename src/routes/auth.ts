@@ -24,6 +24,14 @@ const validateContentType = (req: express.Request, res: express.Response, next: 
     next();
 };
 
+const sendVerificationCode = async (phoneNumber: string, phoneCode: string) => {
+    await twilioClient.messages.create({
+        from: twilioPhoneNumber,
+        to: phoneNumber,
+        body: `Your verification code is: ${phoneCode}`
+    });
+};
+
 router.post('/userLogin', validateContentType, async (req: express.Request, res: express.Response) => {
     const { countryCode, phoneNumber } = req.body;
 
@@ -33,11 +41,14 @@ router.post('/userLogin', validateContentType, async (req: express.Request, res:
         return;
     }
 
-    if (phoneCodes.has(`${countryCode}${phoneNumber}`)) {
-        return res.status(400).send({ status: "error", message: "Phone code already sent" });
-    }
-    
     try {
+        // Check if the user has already requested a verification code.
+        const currentPhoneCode = phoneCodes.get(`${countryCode}${phoneNumber}`)!;
+        if (currentPhoneCode) {
+            await sendVerificationCode(`${countryCode}${phoneNumber}`, currentPhoneCode.code);
+            return res.status(200).send({ status: "success", message: "Verification message sent", expiresIn: "300" });
+        }
+
         // Check that the user exists.
         const user: DBUser | null = await ClientUser.findOne({ phoneNumber: `${countryCode}${phoneNumber}` });
         
@@ -56,11 +67,8 @@ router.post('/userLogin', validateContentType, async (req: express.Request, res:
         }, fiveMinutesInMs);
 
         // Send the verification code to the user's phone number.
-        await twilioClient.messages.create({
-            from: twilioPhoneNumber,
-            to: `${countryCode}${phoneNumber}`,
-            body: `Your verification code is: ${phoneCode}`
-        });
+        await sendVerificationCode(`${countryCode}${phoneNumber}`, phoneCode);
+
         res.status(200).send({ status: "success", message: "Verification message sent", expiresIn: "300" });
     } catch {
         res.status(500).send({ status: "error", message: "Error sending verification message" });

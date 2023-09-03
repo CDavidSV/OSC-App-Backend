@@ -4,6 +4,7 @@ import express from "express";
 import colors from "colors";
 import morgan from "morgan";
 import bodyParser from "body-parser";
+import rateLimiter from "./middlewares/rate-limiter";
 
 // routes
 import routes from "./routes/router";
@@ -21,6 +22,7 @@ app.use(
       extended: true,
     }),
 );
+app.use(rateLimiter);
   
 // Register routes
 app.use(routes);
