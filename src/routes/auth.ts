@@ -48,13 +48,13 @@ router.post('/startAuth', validateContentType, async (req: express.Request, res:
 
     // Verify that the request has the required parameters.
     if (!countryCode || !phoneNumber) {
-        res.status(400).send({ message: "Missing parameters" });
+        res.status(400).send({ staus: "error", message: "Missing parameters", errorCode: 1001 });
         return;
     }
 
     // Verify that the phone number is valid.
     if (!isValidPhoneNumber(`${countryCode}${phoneNumber}`)) {
-        res.status(400).send({ status: "error", message: "Invalid phone number" });
+        res.status(400).send({ status: "error", message: "Invalid phone number", errorCode: 1002 });
         return;
     }
 
@@ -93,7 +93,7 @@ router.post('/startAuth', validateContentType, async (req: express.Request, res:
 
         res.status(200).send({ status: "success", message: "Verification message sent", expiresIn: expirationTime.toString(), newUser: false });
     } catch {
-        res.status(500).send({ status: "error", message: "Error sending verification message" });
+        res.status(500).send({ status: "error", message: "Error sending verification message", errorCode: 1003 });
     }
     
 });
@@ -101,24 +101,24 @@ router.post('/startAuth', validateContentType, async (req: express.Request, res:
 router.post('/verifyOTP', validateContentType, async (req: express.Request, res: express.Response) => {
     const { phoneNumber, verificationCode } = req.body;
     if (!phoneNumber || !verificationCode) {
-        res.status(400).send({ message: "Invalid credentials" });
+        res.status(400).send({ status: "error",message: "Missing parameters", errorCode: 1001 });
         return;
     }
 
     // Verify that the phone number is valid.
     if (!isValidPhoneNumber(phoneNumber)) {
-        res.status(400).send({ status: "error", message: "Invalid phone number" });
+        res.status(400).send({ status: "error", message: "Invalid phone number", errorCode: 1002 });
         return;
     }
 
     // Validate session id and verification code.
     const phoneCode = phoneCodes.get(phoneNumber) || accountCreationCodes.get(phoneNumber);
     if (!phoneCode) {
-        res.status(400).send({ status: "error", message: "Invalid phone number or verification expired" });
+        res.status(400).send({ status: "error", message: "Invalid phone number or verification expired", errorCode: 1004 });
         return;
     }
     if (phoneCode.code !== verificationCode) {
-        res.status(400).send({ status: "error", message: "Invalid verification code" });
+        res.status(400).send({ status: "error", message: "Invalid verification code", errrCode: 1005 });
         return;
     }
 
@@ -145,7 +145,7 @@ router.post('/verifyOTP', validateContentType, async (req: express.Request, res:
         res.status(200).send({ status: "success", message: "Verification code correct", accessToken: accessToken, refreshToken: refreshToken });
     } catch (err) {
         console.error(err);
-        res.status(500).send({ status: "error", message: "Error generating tokens" });
+        res.status(500).send({ status: "error", message: "Error generating tokens", errorCode: 1006 });
     }
 });
 
@@ -153,7 +153,7 @@ router.post('/create/user', authenticateAccessToken, async (req: express.Request
     const username = req.body.username;
 
     if (!username) {
-        res.status(400).send({ message: "Missing parameters" });
+        res.status(400).send({ message: "Missing parameters", errorCode: 1001 });
         return;
     }
 
@@ -161,7 +161,7 @@ router.post('/create/user', authenticateAccessToken, async (req: express.Request
         // Check if the user already exists.
         const clientUser = await ClientUser.findOne({ phoneNumber: req.user?.phoneNumber });
         if (clientUser) {
-            res.status(400).send({ status: "error", message: "User already created" });
+            res.status(400).send({ status: "error", message: "User already created", errorCode: 1007 });
             return;
         }
 
@@ -180,37 +180,37 @@ router.post('/create/user', authenticateAccessToken, async (req: express.Request
 
         res.status(200).send({ status: "success", message: "Account created successfully", accessToken: accessToken, refreshToken: refreshToken });
     } catch {
-        res.status(500).send({ status: "error", message: "Error creating account, please try again later." });
+        res.status(500).send({ status: "error", message: "Error creating account, please try again later.", errorCode: 1008 });
     }
 });
 
 router.post('/revoke', async (req: express.Request, res: express.Response) => {
     const { refreshToken } = req.body;
-    if (!refreshToken) return res.status(400).send({ message: "No token specified" });
+    if (!refreshToken) return res.status(400).send({ status: "error", message: "No token specified", errorCode: 1009 });
 
     const tokenData: User = jwt.decode(refreshToken) as User;
-    if (!tokenData || !tokenData.refresh) return res.status(400).send({ message: "Invalid token provided" });
+    if (!tokenData || !tokenData.refresh) return res.status(400).send({ status: "error", message: "Invalid token provided", errorCode: 1010 });
 
     RefreshToken.findOneAndDelete({ token: refreshToken, userId: tokenData.id }).then((deletedToken) => {
-        if (!deletedToken) return res.status(400).send({ status: "error", message: "Invalid token provided" });
+        if (!deletedToken) return res.status(400).send({ status: "error", message: "Invalid token provided", errorCode: 1010  });
 
         res.status(200).send({ status: "success", message: "Token revoked" });
     }).catch((err) => {
         console.error(err);
-        return res.status(500).send({status: "error", message: "Error revoking token" });
+        return res.status(500).send({status: "error", message: "Error revoking token", errorCode: 1011 });
     });
 });
 
 router.post('/refreshToken', async (req: express.Request, res: express.Response) => {
     const { refreshToken } = req.body;
-    if (!refreshToken) return res.status(400).send({ message: "No token specified" });
+    if (!refreshToken) return res.status(400).send({ status: "error", message: "No token specified", errorCode: 1009 });
 
     const tokenData: User = jwt.decode(refreshToken) as User;
-    if (!tokenData || !tokenData.refresh) return res.status(400).send({ message: "Invalid token" });
+    if (!tokenData || !tokenData.refresh) return res.status(400).send({ status: "error", message: "Invalid token provided", errorCode: 1010 });
 
     try {
         const deletedToken = await RefreshToken.findOneAndDelete({ token: refreshToken, userId: tokenData.id });
-        if (!deletedToken) return res.status(400).send({ status: "error", message: "Invalid token provided" });
+        if (!deletedToken) return res.status(400).send({ status: "error", message: "Invalid token provided", errorCode: 1010 });
 
         let expirationTime = 24 * 60 * 60;
         const accessToken = generateToken({ id: tokenData.id, refresh: false }, expirationTime);
@@ -221,7 +221,7 @@ router.post('/refreshToken', async (req: express.Request, res: express.Response)
 
         res.status(200).send({ status: "success", message: "Token refreshed", newAccessToken: accessToken, refreshToken: newRefreshToken });
     } catch {
-        res.status(500).send({ status: "error", message: "Error refreshing token. Please try again." });
+        res.status(500).send({ status: "error", message: "Error refreshing token. Please try again.", errorCode: 1012 });
     }
 });
 
