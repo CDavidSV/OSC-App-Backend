@@ -1,12 +1,8 @@
-interface PhoneVerificationCode {
-    userId: string;
-    code: string;
-    expiresIn: number;
-}
-
 interface User {
-    id: string;
+    id?: string;
     refresh: boolean;
+    allowedRoutes?: string[];
+    phoneNumber?: string;
 }
 
-export { PhoneVerificationCode, User }
+export { User }

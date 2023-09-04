@@ -11,36 +11,72 @@ interface Requests {
 }
 
 const endpoints: { [key: string]: RateLimit } = {
-    '/oauth2/userLogin': {
+    '/oauth2/startAuth': {
+        timeoutWindowMs: 300_000,
+        maxRequests: 15
+    },
+    '/oauth2/verifyOTP': {
+        timeoutWindowMs: 300_000,
+        maxRequests: 10
+    },
+    '/oauth2/create/user': {
+        timeoutWindowMs: 300_000,
+        maxRequests: 10
+    },
+    '/oauth2/revoke': {
+        timeoutWindowMs: 300_000,
+        maxRequests: 10
+    },
+    'oauth2/refreshToken': {
         timeoutWindowMs: 300_000,
         maxRequests: 10
     }
 };
+
+const defaultRateLimit: RateLimit = {
+    timeoutWindowMs: 60_000,
+    maxRequests: 100
+};
+
 const rateLimits = new Map<string, Map<string, Requests>>();
+const globalLimits = new Map<string, Requests>();
 
-const rateLimiter = (req: Request, res: Response, next: NextFunction) => {
-    if (!endpoints[req.originalUrl]) next();
-    const ipAddress = req.socket.remoteAddress!;
-
-    if (!rateLimits.has(req.originalUrl)) {
-        rateLimits.set(req.originalUrl, new Map<string, Requests>());
-    }
-
-    const endpointLimits = rateLimits.get(req.originalUrl)!;
-    const lastRequest = endpointLimits.get(ipAddress);
-    const rateLimit = endpoints[req.originalUrl];
+const updateOrInitializeLimits = (ipAddress: string, rateLimit: RateLimit, limitMap: Map<string, Requests>) => {
+    const lastRequest = limitMap.get(ipAddress);
 
     if (!lastRequest) {
-        const timeoutFunction = setTimeout(() => endpointLimits.delete(ipAddress), rateLimit.timeoutWindowMs)
-        endpointLimits.set(ipAddress, { requests: 1, timeout: timeoutFunction });
-        return next();
+        const timeoutFunction = setTimeout(() => limitMap.delete(ipAddress), rateLimit.timeoutWindowMs);
+        limitMap.set(ipAddress, { requests: 1, timeout: timeoutFunction });
+        return false; // Not exceeding the limit.
     }
 
-    endpointLimits.set(ipAddress, { requests: lastRequest.requests + 1, timeout: lastRequest.timeout });
+    limitMap.set(ipAddress, { requests: lastRequest.requests + 1, timeout: lastRequest.timeout });
 
-    if (lastRequest.requests > rateLimit.maxRequests) {
-        res.status(429).send({ staus: "failed", message: "Too many requests" });
+    return lastRequest.requests > rateLimit.maxRequests;
+};
+
+const rateLimiter = (req: Request, res: Response, next: NextFunction) => {
+    const ipAddress = req.socket.remoteAddress!;
+
+    // Handle global default rate limiting.
+    if (updateOrInitializeLimits(ipAddress, defaultRateLimit, globalLimits)) {
+        res.status(429).send({ status: "failed", message: "Too many requests" });
         return;
+    }
+
+    const rateLimit = endpoints[req.originalUrl];
+
+    if (rateLimit) {
+        if (!rateLimits.has(req.originalUrl)) {
+            rateLimits.set(req.originalUrl, new Map<string, Requests>());
+        }
+        
+        const endpointLimits = rateLimits.get(req.originalUrl)!;
+
+        if (updateOrInitializeLimits(ipAddress, rateLimit, endpointLimits)) {
+            res.status(429).send({ status: "failed", message: "Too many requests" });
+            return;
+        }
     }
 
     next();
