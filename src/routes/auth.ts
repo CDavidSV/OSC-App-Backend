@@ -38,9 +38,9 @@ router.post('/register', async (req: express.Request, res: express.Response) => 
     try {
         const user = await admin.auth().verifyIdToken(accountToken);
         await admin.auth().updateUser(user.uid, { displayName: username });
-        const dbUser = await UserDB.create({ _id: user.uid, username: username, email: user.email || null, phoneNumber: user.phone_number || null, profilePictureURL: user.picture || null });
+        const dbUser = await UserDB.create({ username: username, email: user.email || null, phoneNumber: user.phone_number || null, profilePictureURL: user.picture || null, firebaseId: user.uid });
 
-        const { accessToken, refreshToken } = await generateTokens(dbUser._id);
+        const { accessToken, refreshToken } = await generateTokens(dbUser._id.toString());
         res.status(200).send({ status: "success", message: "User registered", accessToken: accessToken, refreshToken: refreshToken });
     } catch (err) {
         res.status(500).send({ status: "error", message: "Error registering user" });
@@ -54,16 +54,20 @@ router.post('/login', async (req: express.Request, res: express.Response) => {
     
     try {
         const user = await admin.auth().verifyIdToken(accountToken);
-        let dbUser = await UserDB.findById({ _id: user.uid });
+        let dbUser = await UserDB.findOne({ $or: [{ email: user.email }, { phoneNumber: user.phone_number }] });
 
-        if (!user.displayName && !user.name) return res.status(401).send({ status: "error", message: "User not registered" });
-    
         if (!dbUser) {
             // Create new user in database.
-            dbUser = await UserDB.create({ _id: user.uid, username: user.displayName || user.name, email: user.email || null, phoneNumber: user.phone_number || null, profilePictureURL: user.picture || null });
-        };
+            if (!user.displayName && !user.name) return res.status(401).send({ status: "error", message: "User not registered" });
+            dbUser = await UserDB.create({ username: user.displayName || user.name, email: user.email || null, phoneNumber: user.phone_number || null, profilePictureURL: user.picture || null, firebaseId: user.uid });
+        }
 
-        const { accessToken, refreshToken } = await generateTokens(dbUser._id);
+        if (dbUser.firebaseId !== user.uid) {
+            // Update new firebase id.
+            await UserDB.findByIdAndUpdate(dbUser._id, { firebaseId: user.uid });
+        }
+
+        const { accessToken, refreshToken } = await generateTokens(dbUser._id.toString());
 
         res.status(200).send({ status: "success", message: "User login success", accessToken: accessToken, refreshToken: refreshToken });
     } catch (err) {
