@@ -1,6 +1,5 @@
 import express from "express";
 import twilio from "twilio";
-import ClientUser from "../scheemas/clientUserSchema";
 import UserDB from "../scheemas/userSchema";
 import generateToken from "../util/generateJWT";
 import { User } from "../Models/interfaces";
@@ -23,7 +22,7 @@ const router: express.Router = express.Router();
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
-const phoneCodes = new Map<string, PhoneVerificationCode>();
+const phoneCodes = new Map<string, PhoneVerificationCode>();    
 const accountCreationCodes = new Map<string, PhoneVerificationCode>();
 
 const validateContentType = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -66,7 +65,7 @@ router.post('/startAuth', validateContentType, async (req: express.Request, res:
             return res.status(200).send({ status: "success", message: "Verification message sent", expiresIn: currentPhoneCode.expiresIn.toString() });
         }
 
-        const user: DBUser | null = await ClientUser.findOne({ phoneNumber: `${countryCode}${phoneNumber}` });
+        const user: DBUser | null = await UserDB.findOne({ phoneNumber: `${countryCode}${phoneNumber}` });
 
         // Generate phone code.
         const phoneCode = generateAuthCode(5);
@@ -94,8 +93,7 @@ router.post('/startAuth', validateContentType, async (req: express.Request, res:
         res.status(200).send({ status: "success", message: "Verification message sent", expiresIn: expirationTime.toString(), newUser: false });
     } catch {
         res.status(500).send({ status: "error", message: "Error sending verification message", errorCode: 1003 });
-    }
-    
+    } 
 });
 
 router.post('/verifyOTP', validateContentType, async (req: express.Request, res: express.Response) => {
@@ -159,15 +157,14 @@ router.post('/create/user', authenticateAccessToken, async (req: express.Request
 
     try {
         // Check if the user already exists.
-        const clientUser = await ClientUser.findOne({ phoneNumber: req.user?.phoneNumber });
+        const clientUser = await UserDB.findOne({ phoneNumber: req.user?.phoneNumber });
         if (clientUser) {
             res.status(400).send({ status: "error", message: "User already created", errorCode: 1007 });
             return;
         }
 
         // Create the user.
-        const user = await UserDB.create({ username: username });
-        await ClientUser.create({ userId: user._id, phoneNumber: req.user?.phoneNumber });
+        const user = await UserDB.create({ username: username, phoneNumber: req.user?.phoneNumber });
 
         // Generate access token.
         let expirationTime = 24 * 60 * 60; // 24 hours in seconds.
