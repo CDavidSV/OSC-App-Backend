@@ -11,17 +11,9 @@ interface Requests {
 }
 
 const endpoints: { [key: string]: RateLimit } = {
-    '/oauth2/startAuth': {
+    '/oauth2/login': {
         timeoutWindowMs: 300_000,
         maxRequests: 15
-    },
-    '/oauth2/verifyOTP': {
-        timeoutWindowMs: 300_000,
-        maxRequests: 10
-    },
-    '/oauth2/create/user': {
-        timeoutWindowMs: 300_000,
-        maxRequests: 10
     },
     '/oauth2/revoke': {
         timeoutWindowMs: 300_000,
