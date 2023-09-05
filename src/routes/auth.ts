@@ -56,7 +56,7 @@ router.post('/login', async (req: express.Request, res: express.Response) => {
         const user = await admin.auth().verifyIdToken(accountToken);
         let dbUser = await UserDB.findById({ _id: user.uid });
 
-        if (!user.displayName || !user.name) return res.status(401).send({ status: "error", message: "User not registered" });
+        if (!user.displayName && !user.name) return res.status(401).send({ status: "error", message: "User not registered" });
     
         if (!dbUser) {
             // Create new user in database.
