@@ -1,7 +1,7 @@
 import express from "express";
 
 // Routes
-import apiV1 from "./api_v1";
+import apiV1 from "./api_v1/router";
 import auth from "./auth";
 
 const router: express.Router = express.Router();

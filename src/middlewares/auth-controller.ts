@@ -15,8 +15,6 @@ const authenticateAccessToken = (req: Request, res: Response, next: NextFunction
 
     jwt.verify(token, process.env.ACCESS_TOKEN_KEY as string, (err, user) => {
         if (err) return res.sendStatus(403);
-        const userData = user as any;
-        if (userData.refresh) return res.sendStatus(403);
 
         req.user = user as User;
         next();
