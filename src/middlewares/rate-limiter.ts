@@ -22,7 +22,11 @@ const endpoints: { [key: string]: RateLimit } = {
     'oauth2/refreshToken': {
         timeoutWindowMs: 300_000,
         maxRequests: 10
-    }
+    },
+    '/api/v1/updateUsername': {
+        timeoutWindowMs: 3_600_000,
+        maxRequests: 5
+    },
 };
 
 const defaultRateLimit: RateLimit = {

@@ -1,8 +1,16 @@
 import express from "express";
 import UserDB from "../../scheemas/userSchema";
+import multer from "multer";
+import admin from "../../config/initFirebase";
 import { authenticateAccessToken } from "../../middlewares/auth-controller";
 
 const router: express.Router = express.Router();
+
+const bucket = admin.storage().bucket();
+
+// Configure multer for file uploads.
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 router.post('/updateUsername', authenticateAccessToken, async (req: express.Request, res: express.Response) => {
     const { username } = req.body;
