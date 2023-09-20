@@ -2,10 +2,10 @@
   "name": "osc-app-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "dev": "nodemon --config nodemon.json ./src/index.ts",
-    "start": "ts-node ./build/index.js"
+    "start": "ts-node ./src/index.ts"
   },
   "keywords": [],
   "author": "",

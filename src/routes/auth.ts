@@ -23,7 +23,21 @@ router.post('/register', async (req: express.Request, res: express.Response) => 
     try {
         const user = await admin.auth().verifyIdToken(accountToken);
         await admin.auth().updateUser(user.uid, { displayName: username });
-        const dbUser = await UserDB.create({ username: username, email: user.email || null, phoneNumber: user.phone_number || null, profilePictureURL: user.picture || null, firebaseId: user.uid });
+        const userObject = {
+            username: username,
+            email: user.email,
+            phoneNumber: user.phone_number,
+            profilePictureURL: user.picture,
+            firebaseId: user.uid,
+        };
+        
+        // Filter out properties that are null or undefined
+        const filteredUserObject = Object.fromEntries(
+            Object.entries(userObject).filter(([_, value]) => value != null)
+        );
+        
+        // Create the new user in the database
+        const dbUser = await UserDB.create(filteredUserObject);
 
         const accessToken = generateTokens(dbUser._id.toString());
         res.status(200).send({ status: "success", message: "User registered", accessToken: accessToken });
@@ -39,12 +53,31 @@ router.post('/login', async (req: express.Request, res: express.Response) => {
     
     try {
         const user = await admin.auth().verifyIdToken(accountToken);
-        let dbUser = await UserDB.findOne({ $or: [{ email: user.email }, { phoneNumber: user.phone_number }] });
+        const query: { [key: string]: string | undefined }[] = [{ email: user.email }];
 
+        if (user.phone_number) {
+            query.push({ phoneNumber: user.phone_number });
+        }
+
+        let dbUser = await UserDB.findOne({ $or: query });
         if (!dbUser) {
             // Create new user in database.
             if (!user.displayName && !user.name) return res.status(401).send({ status: "error", message: "User not registered" });
-            dbUser = await UserDB.create({ username: user.displayName || user.name, email: user.email || null, phoneNumber: user.phone_number || null, profilePictureURL: user.picture || null, firebaseId: user.uid });
+            const userObject = {
+                username: user.displayName || user.name,
+                email: user.email,
+                phoneNumber: user.phone_number,
+                profilePictureURL: user.picture,
+                firebaseId: user.uid,
+            };
+            
+            // Filter out properties that are null or undefined
+            const filteredUserObject = Object.fromEntries(
+                Object.entries(userObject).filter(([, value]) => value != null)
+            );
+            
+            // Create the new user in the database
+            dbUser = await UserDB.create(filteredUserObject);
         }
 
         if (dbUser.firebaseId !== user.uid) {
@@ -54,8 +87,8 @@ router.post('/login', async (req: express.Request, res: express.Response) => {
         const accessToken = generateTokens(dbUser._id.toString());
 
         res.status(200).send({ status: "success", message: "User login success", accessToken: accessToken });
-    } catch (err) {
-        res.status(500).send({ status: "error", message: "Error logging in user" });
+    } catch {
+        res.status(500).send({ status: "error", message: "Error logging in user"});
     }
 });
 

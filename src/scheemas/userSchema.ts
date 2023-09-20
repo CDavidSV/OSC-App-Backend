@@ -3,11 +3,11 @@ import { Schema, model } from "mongoose";
 const UserSchema = new Schema({
     firebaseId: { type: String, required: true, unique: true },
     username: { type: String, required: true },
-    profilePictureURL: { type: String, default: null },
-    email: { type: String, default: null, unique: true },
-    phoneNumber: { type: String, default: null, unique: true },
-    assocId: { type: String, default: null },
-    assocPerms: { type: Number, default: null },
+    profilePictureURL: { type: String },
+    email: { type: String, unique: true, sparse: true },
+    phoneNumber: { type: String, unique: true, sparse: true },
+    assocId: { type: String },
+    assocPerms: { type: Number },
     savedAssociations: { type: [String], default: [] },
     associationHistory: { type: [String], default: [] },
 });
