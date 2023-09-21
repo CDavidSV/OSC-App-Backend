@@ -1,58 +1,66 @@
 import express from "express";
 import AssociationDB from "../../../scheemas/associationSchema";
-import TagDB from "../../../scheemas/tagSchema";
-import CategoryDB from "../../../scheemas/categoryShema";
 import { authenticateAccessToken } from "../../../middlewares/auth-controller";
-import { DBAssociation } from "../../../Models/database";
 
 const router: express.Router = express.Router();
 
-router.get('/search', authenticateAccessToken , async (req: express.Request, res: express.Response)=> {
-    const query = req.query.query as string;
-    const words_to_search = query && query.split(" ");
-    const result: {
-        by_name: DBAssociation[],
-        by_tag: DBAssociation[],
-        by_category: DBAssociation[],
-        general: DBAssociation[]
-    } = {
-        by_name: [],
-        by_tag: [],
-        by_category: [],
-        general: []
-    };
+router.get('/seed', (req: express.Request, res: express.Response) => {
+  const sampleAssociation = new AssociationDB({
+    name: 'Sample Association',
+    description: 'A description of the sample association.',
+    logoURL: 'https://example.com/logo.png',
+    images: ['https://example.com/image1.png', 'https://example.com/image2.png'],
+    thumbnailURL: 'https://example.com/thumbnail.png',
+    websiteURL: 'https://example.com',
+    facebookURL: 'https://facebook.com/sample',
+    instagramURL: 'https://instagram.com/sample',
+    categoryId: 'category123',
+    tags: ['tag1', 'tag2', 'tag3'],
+    contact: {
+      email: 'contact@example.com',
+      phone: '+1234567890',
+      whatsapp: '+1234567890',
+    },
+    address: '123 Main Street, City, Country',
+    rating: 4.5,
+  });
+  
+  // Save the sample document to the database
+  return sampleAssociation.save()
+    .then((savedAssociation) => {
+      console.log('Sample association saved:', savedAssociation);
+      return res.status(200)
+    })
+    .catch((error) => {
+      console.error('Error saving sample association:', error);
+      return res.status(500);
+    });
+
+})
+
+router.get('/search' , async (req: express.Request, res: express.Response)=> {
+    const query = req.query.query as string; 
+    let { categoriesIds, tagsIds } = req.body;
+    categoriesIds=['1','2']
+    tagsIds=['tag1','tag2']
     try {
-        for (let i = 0; i < words_to_search.length; i++) {
-            const word = words_to_search[i];
-                
-            // Search for associations by name
-            const associationsByName = await AssociationDB.find({ name: { $regex: word, $options: 'i' } }) as DBAssociation[];
-            result.by_name.push(...associationsByName);
-            result.general.push(...associationsByName);
-            
-            // Tag id associated to word
-            const word_tag = await TagDB.findOne({ name: word });
-            const tag_id = word_tag?._id;
-    
-            // Search for associations by tag
-            const associationsByTag = await AssociationDB.find({ tags: { $in: [tag_id] } }) as DBAssociation[];
-            result.by_tag.push(...associationsByTag);
-            result.general.push(...associationsByTag);
-    
-            // Category id associated to word
-            const word_category = await CategoryDB.findOne({ name: word });
-            const category_id = word_category?._id;
-    
-            // Search for associations by category
-            const associationsByCategory = await AssociationDB.find({ categoryId: category_id }) as DBAssociation[];
-            result.by_category.push(...associationsByCategory);
-            result.general.push(...associationsByCategory);
-        }
+        const associationsWithName = await AssociationDB.find({ $text: { $search: query } }).exec();
+        const associationWithTagsAndCategories = await AssociationDB.find({
+            $or: [
+              { categories: { $in: categoriesIds }, tags: { $in: tagsIds } },
+              { categories: { $in: categoriesIds } },
+              { tags: { $in: tagsIds } },
+            ],
+          }).exec();
+          return res.status(200).json({
+            message:"Associations retrieved succesfully.",
+            associationsWithName,
+            associationWithTagsAndCategories
+          });
     } catch (err) {
+        console.log(err)
         return res.status(500).send({ status: "error", message: "Error while attempting to fetch query results" });
     } 
-
-    return res.json(result);
 });
 
 export default router;
