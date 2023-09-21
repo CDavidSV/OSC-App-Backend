@@ -2,7 +2,7 @@ import express from "express";
 
 // Routes
 import userProfiles from "./userProfiles";
-import searchController from "./search/searchController";
+import searchController from "./searchController";
 
 const router: express.Router = express.Router();
 
