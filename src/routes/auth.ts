@@ -61,10 +61,13 @@ router.post('/login', async (req: express.Request, res: express.Response) => {
     
     try {
         const user = await admin.auth().verifyIdToken(accountToken);
-        const query: { [key: string]: string | undefined }[] = [{ email: user.email }];
+        const query: { [key: string]: string | undefined }[] = [];
 
         if (user.phone_number) {
             query.push({ phoneNumber: user.phone_number });
+        }
+        if (user.email) {
+            query.push({ email: user.email });
         }
 
         let dbUser = await UserDB.findOne({ $or: query });
@@ -95,7 +98,7 @@ router.post('/login', async (req: express.Request, res: express.Response) => {
         const { accessToken, refreshToken } = generateTokens(dbUser._id.toString());
         await refreshTokenSchema.create({ userId: dbUser._id, token: refreshToken, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), createdAt: new Date() });
 
-        res.status(200).send({ status: "success", message: "User login success", accessToken: accessToken, refreshToken });
+        res.status(200).send({ status: "success", message: "User login success", accessToken, refreshToken });
     } catch {
         res.status(500).send({ status: "error", message: "Error logging in user"});
     }

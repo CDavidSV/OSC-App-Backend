@@ -2,7 +2,7 @@ import server from "./server";
 import connectMongoDB from "./config/db";
 
 // Server port
-const port = 3001;
+const port = 3000;
 // Mongo URI
 const MONGO_URI = process.env.MONGO_URI as string;
 
