@@ -95,7 +95,7 @@ router.post('/login', async (req: express.Request, res: express.Response) => {
         const { accessToken, refreshToken } = generateTokens(dbUser._id.toString());
         await refreshTokenSchema.create({ userId: dbUser._id, token: refreshToken, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), createdAt: new Date() });
 
-        res.status(200).send({ status: "success", message: "User login success", accessToken: accessToken });
+        res.status(200).send({ status: "success", message: "User login success", accessToken: accessToken, refreshToken });
     } catch {
         res.status(500).send({ status: "error", message: "Error logging in user"});
     }
