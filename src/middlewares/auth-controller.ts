@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-import { User } from "../Models/interfaces";
+import { TokenUser } from "../Models/interfaces";
 
 /**
  * Authenticate an access token
@@ -16,7 +16,7 @@ const authenticateAccessToken = (req: Request, res: Response, next: NextFunction
     jwt.verify(token, process.env.ACCESS_TOKEN_KEY as string, (err, user) => {
         if (err) return res.sendStatus(403);
 
-        req.user = user as User;
+        req.user = user as TokenUser;
         next();
     });
 }

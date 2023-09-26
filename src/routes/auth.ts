@@ -3,7 +3,7 @@ import UserDB from "../scheemas/userSchema";
 import generateToken from "../util/generateJWT";
 import refreshTokenSchema from "../scheemas/refreshTokenSchema";
 import jwt from "jsonwebtoken";
-import { User } from "../Models/interfaces";
+import { TokenUser } from "../Models/interfaces";
 import admin from "../config/initFirebase";
 
 const router: express.Router = express.Router();
@@ -11,11 +11,11 @@ const router: express.Router = express.Router();
 const generateTokens = (userId: string) => {
     // Generate access token.
     let expirationTime = 24 * 60 * 60; // 24 hours in seconds.
-    const accessToken = generateToken({ id: userId } as User, expirationTime);
+    const accessToken = generateToken({ id: userId } as TokenUser, expirationTime);
 
     // Generate refresh token.
     expirationTime *= 7; // 7 days in seconds.
-    const refreshToken = generateToken({ id: userId } as User, expirationTime, true);
+    const refreshToken = generateToken({ id: userId } as TokenUser, expirationTime, true);
 
     return { accessToken, refreshToken };
 }

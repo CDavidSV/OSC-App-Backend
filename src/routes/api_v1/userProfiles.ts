@@ -31,7 +31,7 @@ router.get('/profile', authenticateAccessToken, async (req: express.Request, res
     if (!user) return res.status(404).send({ status: "error", message: "User not found" });
 
     const userData = {
-        id: user.id.toString(),
+        id: user._id.toString(),
         username: user.username,
         profilePicture: user.profilePictureURL,
         email: user.email,
