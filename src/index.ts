@@ -4,9 +4,10 @@ import connectMongoDB from "./config/db";
 // Server port
 const port = 3000;
 // Mongo URI
-const MONGO_URI = process.env.MONGO_URI as string;
+const MONGO_URI = process.env.MONGO_URI_ATLAS as string;
+// const MONGO_URI = process.env.MONGO_URI_ITESM as string;
 
-// Main server functiona
+// Main server function
 const main = async () => {
     await connectMongoDB(MONGO_URI);
 
