@@ -1,11 +1,11 @@
-import { User } from "./Models/interfaces";
+import { TokenUser } from "./Models/interfaces";
 
 export {};
 
 declare global {
     namespace Express {
         export interface Request {
-            user?: User;
+            user?: TokenUser;
         }
     }
 }

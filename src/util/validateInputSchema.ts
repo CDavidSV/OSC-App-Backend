@@ -13,13 +13,18 @@ const validateJsonBody = (body: any, schema: { [key: string]: JsonValidator }) =
     const missing = [];
     const invalid = [];
     for (const key in schema) {
+        if (!schema.hasOwnProperty(key)) continue;
         const value = body[key];
         const validator = schema[key];
 
-        if (!value && validator.required) {
+        if ((value === null || value === undefined) && validator.required) {
             missing.push(key);
             continue;
-        } else if (validator.type === 'array' && !Array.isArray(value)) {
+        } else if (value === null || value === undefined) {
+            continue;
+        }
+
+        if (validator.type === 'array' && !Array.isArray(value)) {
             invalid.push(key);
             continue;
         } else if (typeof value !== validator.type) {
