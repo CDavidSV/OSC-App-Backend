@@ -1,13 +1,15 @@
 import express from "express";
 import reviewSchema from "../../scheemas/reviewSchema";
+import reviewVotesSchema from "../../scheemas/reviewVotesSchema";
 import { Review } from "../../Models/interfaces";
 import { JsonValidator, validateJsonBody } from "../../util/validateInputSchema";
 import mongoose from "mongoose";
 import { authenticateAccessToken } from "../../middlewares/auth-controller";
+import associationSchema from "../../scheemas/associationSchema";
 
 const router: express.Router = express.Router();
 
-router.get('/fetch', async (req: express.Request, res: express.Response) => {
+router.get('/fetch', authenticateAccessToken, async (req: express.Request, res: express.Response) => {
     let page: number = parseInt(req.query.page as string) || 1;
     const limit: number = 100;
     const skip: number = (page - 1) * limit;
@@ -17,15 +19,24 @@ router.get('/fetch', async (req: express.Request, res: express.Response) => {
 
     // Search for the reviews in the database based on page.
     try {
-        const reviewsCount = await reviewSchema.countDocuments();
-        const totalPages = Math.ceil(reviewsCount / limit);
+        const reviewsFetched = await reviewSchema.find(
+            { private: false, assocId: id },
+            )
+            .skip(skip)
+            .limit(100)
+            .populate('user')
+            .sort({ createdAt: -1 });
+        const totalPages = Math.ceil(reviewsFetched.length / limit);
         page = page > totalPages ? totalPages : page;
 
-        const reviewsFetched = await reviewSchema.find({ private: false, assocId: id }).skip(skip).limit(100).populate('user').sort({ createdAt: -1 }).exec();
+        const reviewsIds = reviewsFetched.map((review: any) => review._id);
+        const voted = await reviewVotesSchema.find({ reviewId: { $in: reviewsIds }, userId: req.user?.id });
         
-        const reviewsList: Review[] = [];
-        reviewsFetched.map((review: any) => {
-            reviewsList.push({
+        const reviewsList: Review[] = reviewsFetched.map((review: any) => {
+            const userVote = voted.find((vote) => vote.reviewId.toString() === review._id.toString());
+
+            return {
+                id: review._id.toString(),
                 assocId: review.assocId.toString(),
                 content: review.content,
                 createdAt: review.createdAt,
@@ -37,8 +48,9 @@ router.get('/fetch', async (req: express.Request, res: express.Response) => {
                     id: review.user._id,
                     username: review.user.username,
                     profilePictureURL: review.user.profilePictureURL
-                }
-            });
+                },
+                vote: userVote ? userVote.vote : -1
+            }
         });
         const response = {
             status: "success",
@@ -65,7 +77,7 @@ router.post('/post', authenticateAccessToken, async (req: express.Request, res: 
     }
 
     const validationResult = validateJsonBody(req.body, reviewPostSchema);
-    if (!validationResult.valid) return res.status(400).json({ status: "error", message: "Invalid request body", missing: validationResult.missing, invalid: validationResult.invalid });
+    if (!validationResult.valid) return res.status(400).json({ status: "error", message: "Invalid request body.", missing: validationResult.missing, invalid: validationResult.invalid });
 
     if (rating < 0 || rating > 5) return res.status(400).json({ status: "error", message: "Rating must be between 1 and 5." });
     if (content.length > 2000) return res.status(400).json({ status: "error", message: "Review content must be less than 2000 characters." });
@@ -78,7 +90,7 @@ router.post('/post', authenticateAccessToken, async (req: express.Request, res: 
         const reviewExists = await reviewSchema.exists({ assocId: assocId, userId: req.user?.id });
 
         // Check if the association exists.
-        const associationExists = await reviewSchema.exists({ _id: assocId });
+        const associationExists = await associationSchema.exists({ _id: assocId });
 
         if (reviewExists) return res.status(400).json({ status: "error", message: "You have already posted a review for this association." });
         if (!associationExists) return res.status(400).json({ status: "error", message: "Association does not exist." });
@@ -112,7 +124,7 @@ router.post('/update', authenticateAccessToken, async (req: express.Request, res
     }
 
     const validationResult = validateJsonBody(req.body, reviewUpdateSchema);
-    if (!validationResult.valid) return res.status(400).json({ status: "error", message: "Invalid request body", missing: validationResult.missing, invalid: validationResult.invalid });
+    if (!validationResult.valid) return res.status(400).json({ status: "error", message: "Invalid request body.", missing: validationResult.missing, invalid: validationResult.invalid });
 
     if (rating && (rating < 0 || rating > 5)) return res.status(400).json({ status: "error", message: "Rating must be between 1 and 5." });
     if (content && content.length > 2000) return res.status(400).json({ status: "error", message: "Review content must be less than 2000 characters." });
@@ -137,8 +149,75 @@ router.post('/update', authenticateAccessToken, async (req: express.Request, res
     }
 });
 
-// router.delete('/delete', (req: express.Request, res: express.Response) => {});
+router.delete('/delete', authenticateAccessToken, async (req: express.Request, res: express.Response) => {
+    const { reviewId } = req.query;
 
-// router.post('/react', (req: express.Request, res: express.Response) => {});
+    if (!reviewId) return res.status(400).json({ status: "error", message: "Invalid request body." });
+
+    try {
+        const review = await reviewSchema.findOneAndDelete({ _id: reviewId, userId: req.user?.id });
+
+        if (!review) return res.status(400).json({ status: "error", message: "You are not authorized to update this review." });
+
+        res.status(200).send({ status: "success", message: "Review has been deleted." });
+    } catch {
+        res.status(500).json({ status: "error", message: "Unable to delete review. Please try again later." });
+    }
+});
+
+router.post('/vote', authenticateAccessToken, async (req: express.Request, res: express.Response) => {
+    const { reviewId, vote } = req.body;
+
+    // Early validation
+    if (![0, 1].includes(vote)) {
+        return res.status(400).json({ status: "error", message: "Invalid vote value." });
+    }
+
+    const voteSubmitSchema = {
+        reviewId: { required: true, type: 'string' },
+        vote: { required: true, type: 'number' }
+    };
+
+    const validation = validateJsonBody(req.body, voteSubmitSchema);
+    if (!validation.valid) {
+        return res.status(400).json({ status: "error", message: "Invalid request body.", missing: validation.missing, invalid: validation.invalid });
+    }
+
+    try {
+        // Check if review exists
+        const reviewExists = await reviewSchema.exists({ _id: reviewId });
+        if (!reviewExists) {
+            return res.status(400).json({ status: "error", message: "Review does not exist." });
+        }
+
+        // Handle user vote
+        const userId = req.user?.id;
+        const existingVote = await reviewVotesSchema.findOne({ reviewId, userId });
+
+        if (existingVote) {
+            if (existingVote.vote === vote) {
+                // Remove existing vote if it's the same as the new vote
+                await existingVote.deleteOne();
+            } else {
+                // Update existing vote otherwise
+                existingVote.vote = vote;
+                await existingVote.save();
+            }
+        } else {
+            // Insert new vote if it doesn't exist
+            await reviewVotesSchema.create({
+                reviewId,
+                userId,
+                vote
+            });
+        }
+
+        return res.status(200).json({ status: "success", message: "Vote submitted successfully." });
+    } catch {
+        return res.status(500).json({ status: "error", message: "Unable to submit vote. Please try again." });
+    }
+
+});
+
 
 export default router;

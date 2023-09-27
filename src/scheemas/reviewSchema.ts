@@ -12,10 +12,11 @@ const ReviewSchema = new Schema({
 }, { toJSON: { virtuals: true } });
 
 ReviewSchema.index({ assocId: 1 });
+ReviewSchema.index({ userId: 1 });
 ReviewSchema.virtual('user', {
     ref: 'User',
     localField: 'userId',
     foreignField: '_id',
     justOne: true
-})
+});
 export default model("Review", ReviewSchema);

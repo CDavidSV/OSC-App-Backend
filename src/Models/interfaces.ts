@@ -9,6 +9,7 @@ interface User {
 }
 
 interface Review {
+    id: string;
     assocId: string;
     user: User;
     content: string;
@@ -17,6 +18,7 @@ interface Review {
     downvotes: number;
     rating: number;
     private: boolean;
+    vote: number;
 }
 
 export { TokenUser, User, Review }
