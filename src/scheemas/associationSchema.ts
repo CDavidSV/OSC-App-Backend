@@ -9,7 +9,7 @@ const AssociationSchema = new Schema({
     websiteURL: { type: String, default: null },
     facebookURL: { type: String, default: null },
     instagramURL: { type: String, default: null },
-    categoryId: { type: String, required: true },
+    categoryId: { type: Schema.Types.ObjectId, required: true },
     tags: { type: [String], default: [] },
     contact : {
         email: { type: String, required: true },

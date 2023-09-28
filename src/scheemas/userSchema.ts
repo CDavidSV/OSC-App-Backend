@@ -8,7 +8,7 @@ const UserSchema = new Schema({
     phoneNumber: { type: String, unique: true, sparse: true },
     assocId: { type: String },
     assocPerms: { type: Number },
-    savedAssociations: { type: [Schema.Types.ObjectId], default: [] }
+    savedAssociations: { type: [String], default: [] }
 });
 
 UserSchema.index({ username: 1 });

@@ -1,8 +1,8 @@
 import { Schema, model } from "mongoose";
 
 const reviewVotesSchema = new Schema({
-    reviewId: { type: Schema.Types.ObjectId, required: true },
-    userId: { type: Schema.Types.ObjectId, required: true },
+    reviewId: { type: String, required: true },
+    userId: { type: String, required: true },
     vote: { type: Number, required: true }
 });
 
