@@ -122,7 +122,6 @@ router.post('/update', authenticateAccessToken, async (req: express.Request, res
         rating: { required: false, type: 'number' },
         isPrivate: { required: false, type: 'boolean' }
     }
-
     const validationResult = validateJsonBody(req.body, reviewUpdateSchema);
     if (!validationResult.valid) return res.status(400).json({ status: "error", message: "Invalid request body.", missing: validationResult.missing, invalid: validationResult.invalid });
 
