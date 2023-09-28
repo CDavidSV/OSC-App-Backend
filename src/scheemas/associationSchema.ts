@@ -17,7 +17,7 @@ const AssociationSchema = new Schema({
         whatsapp: { type: String, default: null },
     },
     address: { type: String, required: true },
-    rating: { type: Number, required: true }
+    verified: { type: Boolean, required: true }
 });
 
 AssociationSchema.index({ name: 1});
