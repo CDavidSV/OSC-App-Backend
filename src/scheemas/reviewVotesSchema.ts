@@ -6,6 +6,5 @@ const reviewVotesSchema = new Schema({
     vote: { type: Number, required: true }
 });
 
-reviewVotesSchema.index({ reviweId: 1 });
-reviewVotesSchema.index({ userId: 1 });
+reviewVotesSchema.index({ reviweId: 1, userId: 1 });
 export default model('ReviewVotes', reviewVotesSchema);

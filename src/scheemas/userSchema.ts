@@ -12,4 +12,5 @@ const UserSchema = new Schema({
 });
 
 UserSchema.index({ username: 1 });
+UserSchema.index({ email: 1, phoneNumber: 1 });
 export default model("User", UserSchema);

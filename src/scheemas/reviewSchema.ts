@@ -11,7 +11,7 @@ const ReviewSchema = new Schema({
     private: { type: Boolean, required: true }
 }, { toJSON: { virtuals: true } });
 
-ReviewSchema.index({ assocId: 1 });
+ReviewSchema.index({ userId: 1, assocId: 1 });
 ReviewSchema.index({ userId: 1 });
 ReviewSchema.virtual('user', {
     ref: 'User',
