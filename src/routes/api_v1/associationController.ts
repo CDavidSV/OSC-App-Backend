@@ -7,13 +7,27 @@ const router: express.Router = express.Router();
 
 router.get('/getAssociation/:id?', /* authenticateAccessToken */ (req: express.Request, res: express.Response) => {
     const associationId = req.params.id || req.query.id;
+    const user_id = req.query.user_id;
 
     AssociationDB.findById(associationId)
         .then((association) => {
             if (!association) {
                 return res.status(404).json({ status: "error", message: "Association not found" });
             }
-            res.status(200).json({ status: "success", association });
+            let user_perms = 4;
+            const foundCollaborator = association.colaborators.find(collaborator => 
+                collaborator.userId === user_id
+            );
+            if (foundCollaborator) {
+                if (foundCollaborator.perms === 1) {
+                    user_perms=1;
+                } else if (foundCollaborator.perms === 2) {
+                    user_perms=2;
+                } else if (foundCollaborator.perms === 3) {
+                    user_perms=3;
+                }
+            }
+            res.status(200).json({ status: "success", user_perms: user_perms, association });
         })
         .catch((error) => {
             console.error(error);
