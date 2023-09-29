@@ -21,4 +21,12 @@ interface Review {
     vote: number;
 }
 
-export { TokenUser, User, Review }
+interface SavedAssociation {
+    id: string;
+    name: string;
+    description: string;
+    logoURL: string;
+    rating: number;
+}
+
+export { TokenUser, User, Review, SavedAssociation }

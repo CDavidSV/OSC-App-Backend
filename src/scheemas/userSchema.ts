@@ -8,9 +8,9 @@ const UserSchema = new Schema({
     phoneNumber: { type: String, unique: true, sparse: true },
     assocId: { type: String },
     assocPerms: { type: Number },
-    savedAssociations: { type: [String], default: [] },
-    associationHistory: { type: [String], default: [] },
+    savedAssociations: { type: [String], default: [], ref: 'Association' }
 });
 
 UserSchema.index({ username: 1 });
+UserSchema.index({ email: 1, phoneNumber: 1 });
 export default model("User", UserSchema);

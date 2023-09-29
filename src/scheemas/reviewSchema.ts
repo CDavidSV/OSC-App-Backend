@@ -1,8 +1,8 @@
 import { Schema, model } from "mongoose";
 
 const ReviewSchema = new Schema({
-    assocId: { type: Schema.Types.ObjectId, required: true, ref: 'Association' },
-    userId: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
+    assocId: { type: String, required: true, ref: 'Association' },
+    userId: { type: String, required: true, ref: 'User' },
     content: { type: String, required: true },
     createdAt: { type: Date, required: true },
     upvotes: { type: Number, required: true },
@@ -11,7 +11,7 @@ const ReviewSchema = new Schema({
     private: { type: Boolean, required: true }
 }, { toJSON: { virtuals: true } });
 
-ReviewSchema.index({ assocId: 1 });
+ReviewSchema.index({ userId: 1, assocId: 1 });
 ReviewSchema.index({ userId: 1 });
 ReviewSchema.virtual('user', {
     ref: 'User',

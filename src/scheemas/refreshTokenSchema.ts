@@ -8,5 +8,5 @@ const RefreshTokenScheema = new Schema({
 });
 
 RefreshTokenScheema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-RefreshTokenScheema.index({ token: 1 });
+RefreshTokenScheema.index({ token: 1, userId: 1 });
 export default model("RefreshToken", RefreshTokenScheema);

@@ -122,7 +122,6 @@ router.post('/update', authenticateAccessToken, async (req: express.Request, res
         rating: { required: false, type: 'number' },
         isPrivate: { required: false, type: 'boolean' }
     }
-
     const validationResult = validateJsonBody(req.body, reviewUpdateSchema);
     if (!validationResult.valid) return res.status(400).json({ status: "error", message: "Invalid request body.", missing: validationResult.missing, invalid: validationResult.invalid });
 
@@ -185,8 +184,8 @@ router.post('/vote', authenticateAccessToken, async (req: express.Request, res: 
 
     try {
         // Check if review exists
-        const reviewExists = await reviewSchema.exists({ _id: reviewId });
-        if (!reviewExists) {
+        const review = await reviewSchema.findById({ _id: reviewId });
+        if (!review) {
             return res.status(400).json({ status: "error", message: "Review does not exist." });
         }
 
@@ -197,26 +196,31 @@ router.post('/vote', authenticateAccessToken, async (req: express.Request, res: 
         if (existingVote) {
             if (existingVote.vote === vote) {
                 // Remove existing vote if it's the same as the new vote
+                review.upvotes -= vote === 1 > 0 ? 1 : 0;
+                review.downvotes -= vote === 0 > 0 ? 1 : 0;
                 await existingVote.deleteOne();
             } else {
                 // Update existing vote otherwise
+                review.upvotes += vote === 1 ? 1 : 0;
+                review.downvotes += vote === 0 ? 1 : 0;
                 existingVote.vote = vote;
                 await existingVote.save();
             }
         } else {
             // Insert new vote if it doesn't exist
+            review.upvotes += vote === 1 ? 1 : 0;
+            review.downvotes += vote === 0 ? 1 : 0;
             await reviewVotesSchema.create({
                 reviewId,
                 userId,
                 vote
             });
         }
-
+        await review.save();
         return res.status(200).json({ status: "success", message: "Vote submitted successfully." });
     } catch {
         return res.status(500).json({ status: "error", message: "Unable to submit vote. Please try again." });
     }
-
 });
 
 

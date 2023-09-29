@@ -32,6 +32,7 @@ router.post('/search', authenticateAccessToken, async (req: express.Request, res
     }
 
     try {
+        // TODO: Add ratings to associations by populating the ratings collection and calculating the average.
         const results = await AssociationDB.find(query);
           return res.status(200).json({
             status: "success",
