@@ -72,5 +72,15 @@ router.delete('/deleteTag/:id?', /*authenticateAccessToken*/ (req: express.Reque
         });
 });
 
-export default router;
+router.get('/getAllTags', /* authenticateAccessToken */ (req: express.Request, res: express.Response) => {
+    TagDB.find()
+        .then((tags) => {
+            res.status(200).json({ status: "success", tags });
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).json({ status: "error", message: "Error fetching tags" });
+        });
+});
 
+export default router;
