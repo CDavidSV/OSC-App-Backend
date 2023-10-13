@@ -43,8 +43,8 @@ router.get('/getAssociation/:id?', /* authenticateAccessToken */ async (req: exp
 
 router.post('/createAssociation', /*authenticateAccessToken*/  async (req: express.Request, res: express.Response) => {
     try {
-        const associationData = req.body;
-
+        let associationData = req.body;
+        associationData.ownerId = req.user?.id;
         const newAssociation = new AssociationDB(associationData);
         await newAssociation.save();
 
