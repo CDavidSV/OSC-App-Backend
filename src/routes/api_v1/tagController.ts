@@ -83,4 +83,24 @@ router.get('/getAllTags', /* authenticateAccessToken */ (req: express.Request, r
         });
 });
 
+router.post('/getTagsNames', /* authenticateAccessToken */ (req, res) => {
+    const { tags } = req.body;
+
+    if (!Array.isArray(tags)) {
+        return res.status(400).json({ status: "error", message: "tagsId must be an array" });
+    }
+
+    // Find tags with the specified tagIds
+    TagDB.find({ _id: { $in: tags } })
+        .then((tags) => {
+            // Extract tag names from the tags
+            const tagNames = tags.map((tag) => tag.name);
+
+            res.status(200).json({ status: "success", tags: tagNames });
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).json({ status: "error", message: "Error fetching tags by ID" });
+        });
+});
 export default router;
