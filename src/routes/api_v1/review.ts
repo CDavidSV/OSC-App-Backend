@@ -193,16 +193,17 @@ router.post('/vote', authenticateAccessToken, async (req: express.Request, res: 
         const userId = req.user?.id;
         const existingVote = await reviewVotesSchema.findOne({ reviewId, userId });
 
+        // 1 means upvote, 0 means downvote and -1 means no vote
         if (existingVote) {
             if (existingVote.vote === vote) {
                 // Remove existing vote if it's the same as the new vote
-                review.upvotes -= vote === 1 > 0 ? 1 : 0;
-                review.downvotes -= vote === 0 > 0 ? 1 : 0;
+                review.upvotes -= vote === 1 ? 1 : 0;
+                review.downvotes -= vote === 0 ? 1 : 0;
                 await existingVote.deleteOne();
             } else {
                 // Update existing vote otherwise
-                review.upvotes += vote === 1 ? 1 : 0;
-                review.downvotes += vote === 0 ? 1 : 0;
+                review.upvotes += vote === 1 ? 1 : -1;
+                review.downvotes += vote === 0 ? 1 : -1;
                 existingVote.vote = vote;
                 await existingVote.save();
             }
