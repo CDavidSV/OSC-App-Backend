@@ -15,6 +15,9 @@ const AssociationSchema = new Schema({
     websiteURL: { type: String, default: null },
     facebookURL: { type: String, default: null },
     instagramURL: { type: String, default: null },
+    twitterURL: { type: String, default: null },
+    linkedinURL: { type: String, default: null },
+    youtubeURL: { type: String, default: null },
     categoryId: { type: Schema.Types.ObjectId, required: true },
     tags: { type: [String], default: [] },
     contact: {

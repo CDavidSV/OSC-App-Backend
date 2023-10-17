@@ -94,4 +94,3 @@ router.delete('/deleteAssociation/:id?', /*authenticateAccessToken*/ (req: expre
 });
 
 export default router;
-
