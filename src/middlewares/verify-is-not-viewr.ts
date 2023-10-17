@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import UserDB from "../scheemas/userSchema";
 
-async function verifyUserIsAdmin(req: Request, res: Response, next: NextFunction) {
+async function verifyIsNotViewer(req: Request, res: Response, next: NextFunction) {
     let { user_id } = req.body || req.query;
     user_id = !user_id && req.user?.id;
     if (!user_id) {
@@ -13,7 +13,7 @@ async function verifyUserIsAdmin(req: Request, res: Response, next: NextFunction
             if (!user) {
                 return res.status(404).json({ message: 'User not found' });
             }
-            if (user.assocPerms === 1) {
+            if (user.assocPerms === 1 || user.assocPerms === 2) {
                 return next();
             } else {
                 return res.status(401).json({ message: 'Unauthorized' });
@@ -26,4 +26,4 @@ async function verifyUserIsAdmin(req: Request, res: Response, next: NextFunction
 }
 
 
-export default verifyUserIsAdmin;
+export default verifyIsNotViewer;

@@ -1,5 +1,6 @@
 import express from "express";
 import AssociationDB from "../../scheemas/associationSchema";
+import verifyIsNotViewer from "../../middlewares/verify-is-not-viewr";
 import reviewSchema from "../../scheemas/reviewSchema";
 import { validateJsonBody, JsonValidator, JsonValidatorResponse } from "../../util/validateInputSchema";
 import { authenticateAccessToken } from "../../middlewares/auth-controller";
@@ -8,7 +9,7 @@ const router: express.Router = express.Router();
 
 router.get('/getAssociation/:id?', /* authenticateAccessToken */ async (req: express.Request, res: express.Response) => {
     const associationId = req.params.id || req.query.id;
-    const user_id = req.query.user_id;
+    const user_id = req.query.user_id || req.user?.id;
 
     try {
         const association = await AssociationDB.findById(associationId);
@@ -55,7 +56,7 @@ router.post('/createAssociation', /*authenticateAccessToken*/  async (req: expre
     }
 });
 
-router.put('/updateAssociation/:id?', /* authenticateAccessToken */ (req: express.Request, res: express.Response) => {
+router.put('/updateAssociation/:id?', [verifyIsNotViewer], (req: express.Request, res: express.Response) => {
     const associationId = req.params.id || req.query.id;
     const updatedData = req.body;
 

@@ -2,7 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import UserDB from "../scheemas/userSchema";
 
 async function verifyUserIsAdmin(req: Request, res: Response, next: NextFunction) {
-    const { user_id } = req.body || req.query;
+    let { user_id } = req.body || req.query;
+    user_id = !user_id && req.user?.id;
     if (!user_id) {
         return res.status(400).json({ message: 'Missing user_id in request' });
     }
