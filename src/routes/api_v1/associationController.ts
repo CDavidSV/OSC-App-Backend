@@ -1,6 +1,8 @@
 import express from "express";
 import AssociationDB from "../../scheemas/associationSchema";
 import verifyIsNotViewer from "../../middlewares/verify-is-not-viewr";
+import verifyUserIsMod from "../../middlewares/verify-user-moderator";
+import verifyUserIsOwner from "../../middlewares/verify-user-owner";
 import reviewSchema from "../../scheemas/reviewSchema";
 import { validateJsonBody, JsonValidator, JsonValidatorResponse } from "../../util/validateInputSchema";
 import { authenticateAccessToken } from "../../middlewares/auth-controller";
@@ -77,7 +79,7 @@ router.put('/updateAssociation/:id?', [verifyIsNotViewer], (req: express.Request
         });
 });
 
-router.delete('/deleteAssociation/:id?', /*authenticateAccessToken*/ (req: express.Request, res: express.Response) => {
+router.delete('/deleteAssociation/:id?', [verifyUserIsOwner], (req: express.Request, res: express.Response) => {
     const associationId = req.params.id || req.query.id;
 
     AssociationDB.findByIdAndDelete(associationId)

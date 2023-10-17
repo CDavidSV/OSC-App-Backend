@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import UserDB from "../scheemas/userSchema";
 
-async function verifyUserIsAdmin(req: Request, res: Response, next: NextFunction) {
+async function verifyUserIsMod(req: Request, res: Response, next: NextFunction) {
     let { user_id } = req.body || req.query;
     user_id = !user_id && req.user?.id;
     if (!user_id) {
@@ -25,4 +25,4 @@ async function verifyUserIsAdmin(req: Request, res: Response, next: NextFunction
         });
 }
 
-export default verifyUserIsAdmin;
+export default verifyUserIsMod;
