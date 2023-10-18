@@ -25,7 +25,7 @@ app.use(
 );
 app.use(rateLimiter);
 app.use(cors());
-  
+
 // Register routes
 app.use(routes);
 

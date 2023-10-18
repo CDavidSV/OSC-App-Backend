@@ -1,9 +1,10 @@
 import express from "express";
 import categoryShema from "../../scheemas/categoryShema";
+import { authenticateAccessToken } from "../../middlewares/auth-controller";
 
 const router: express.Router = express.Router();
 
-router.get('/getAllCategories', (req: express.Request, res: express.Response) => {
+router.get('/getAllCategories', authenticateAccessToken, (req: express.Request, res: express.Response) => {
     categoryShema.find()
         .then((categories) => {
             if (!categories) {

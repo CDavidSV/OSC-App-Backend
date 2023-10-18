@@ -5,7 +5,7 @@ import { authenticateAccessToken } from "../../middlewares/auth-controller";
 
 const router: express.Router = express.Router();
 
-router.get('/getTag/:id?', /* authenticateAccessToken */ (req: express.Request, res: express.Response) => {
+router.get('/getTag/:id?', authenticateAccessToken, (req: express.Request, res: express.Response) => {
     const tagId = req.params.id || req.query.id;
 
     TagDB.findById(tagId)
@@ -21,7 +21,7 @@ router.get('/getTag/:id?', /* authenticateAccessToken */ (req: express.Request, 
         });
 });
 
-router.post('/createTag', /*authenticateAccessToken*/  async (req: express.Request, res: express.Response) => {
+router.post('/createTag', authenticateAccessToken, async (req: express.Request, res: express.Response) => {
     try {
         const tagData = req.body;
 
@@ -35,7 +35,7 @@ router.post('/createTag', /*authenticateAccessToken*/  async (req: express.Reque
     }
 });
 
-router.put('/updateTag/:id?', /* authenticateAccessToken */ (req: express.Request, res: express.Response) => {
+router.put('/updateTag/:id?', authenticateAccessToken, (req: express.Request, res: express.Response) => {
     const tagId = req.params.id || req.query.id;
     const updatedData = req.body;
 
@@ -56,7 +56,7 @@ router.put('/updateTag/:id?', /* authenticateAccessToken */ (req: express.Reques
         });
 });
 
-router.delete('/deleteTag/:id?', /*authenticateAccessToken*/ (req: express.Request, res: express.Response) => {
+router.delete('/deleteTag/:id?', authenticateAccessToken, (req: express.Request, res: express.Response) => {
     const tagId = req.params.id || req.query.id;
 
     TagDB.findByIdAndDelete(tagId)
@@ -72,7 +72,7 @@ router.delete('/deleteTag/:id?', /*authenticateAccessToken*/ (req: express.Reque
         });
 });
 
-router.get('/getAllTags', /* authenticateAccessToken */ (req: express.Request, res: express.Response) => {
+router.get('/getAllTags', authenticateAccessToken, (req: express.Request, res: express.Response) => {
     TagDB.find()
         .then((tags) => {
             res.status(200).json({ status: "success", tags });
@@ -83,7 +83,7 @@ router.get('/getAllTags', /* authenticateAccessToken */ (req: express.Request, r
         });
 });
 
-router.post('/getTagsNames', /* authenticateAccessToken */ (req, res) => {
+router.post('/getTagsNames', authenticateAccessToken, (req, res) => {
     const { tags } = req.body;
 
     if (!Array.isArray(tags)) {

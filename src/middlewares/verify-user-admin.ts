@@ -25,5 +25,4 @@ async function verifyUserIsAdmin(req: Request, res: Response, next: NextFunction
         });
 }
 
-
 export default verifyUserIsAdmin;

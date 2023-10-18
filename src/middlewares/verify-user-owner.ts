@@ -25,5 +25,4 @@ async function verifyUserIsOwner(req: Request, res: Response, next: NextFunction
         });
 }
 
-
 export default verifyUserIsOwner;

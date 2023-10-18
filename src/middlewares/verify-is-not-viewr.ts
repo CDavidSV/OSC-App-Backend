@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import UserDB from "../scheemas/userSchema";
+import { authenticateAccessToken } from './auth-controller';
 
 async function verifyIsNotViewer(req: Request, res: Response, next: NextFunction) {
     let { user_id } = req.body || req.query;
@@ -24,6 +25,5 @@ async function verifyIsNotViewer(req: Request, res: Response, next: NextFunction
             return res.status(500).json({message: 'Internal Server Error. Contact support.'})
         });
 }
-
 
 export default verifyIsNotViewer;

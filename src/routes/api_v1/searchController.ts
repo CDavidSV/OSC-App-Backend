@@ -6,7 +6,7 @@ import { authenticateAccessToken } from "../../middlewares/auth-controller";
 
 const router: express.Router = express.Router();
 
-router.post('/search', /*authenticateAccessToken*/ async (req: express.Request, res: express.Response) => {
+router.post('/search', authenticateAccessToken, async (req: express.Request, res: express.Response) => {
   let { categories, tags, queryText } = req.body;
 
   if (!categories && !tags && !queryText) return res.status(400).send({ status: "error", message: "No search parameters specified" });
@@ -61,6 +61,5 @@ router.post('/search', /*authenticateAccessToken*/ async (req: express.Request, 
       return res.status(500).send({ status: "error", message: "Error while attempting to fetch query results" });
   } 
 });
-
 
 export default router;

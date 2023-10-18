@@ -9,7 +9,7 @@ import { authenticateAccessToken } from "../../middlewares/auth-controller";
 
 const router: express.Router = express.Router();
 
-router.get('/getAssociation/:id?', /* authenticateAccessToken */ async (req: express.Request, res: express.Response) => {
+router.get('/getAssociation/:id?', authenticateAccessToken, async (req: express.Request, res: express.Response) => {
     const associationId = req.params.id || req.query.id;
     const user_id = req.query.user_id || req.user?.id;
 
@@ -44,7 +44,7 @@ router.get('/getAssociation/:id?', /* authenticateAccessToken */ async (req: exp
     }
 });
 
-router.post('/createAssociation', /*authenticateAccessToken*/  async (req: express.Request, res: express.Response) => {
+router.post('/createAssociation', authenticateAccessToken,  async (req: express.Request, res: express.Response) => {
     try {
         let associationData = req.body;
         associationData.ownerId = req.user?.id;
@@ -58,7 +58,7 @@ router.post('/createAssociation', /*authenticateAccessToken*/  async (req: expre
     }
 });
 
-router.put('/updateAssociation/:id?', [verifyIsNotViewer], (req: express.Request, res: express.Response) => {
+router.put('/updateAssociation/:id?', [authenticateAccessToken, verifyIsNotViewer], (req: express.Request, res: express.Response) => {
     const associationId = req.params.id || req.query.id;
     const updatedData = req.body;
 
@@ -79,7 +79,7 @@ router.put('/updateAssociation/:id?', [verifyIsNotViewer], (req: express.Request
         });
 });
 
-router.delete('/deleteAssociation/:id?', [verifyUserIsOwner], (req: express.Request, res: express.Response) => {
+router.delete('/deleteAssociation/:id?', [authenticateAccessToken, verifyUserIsOwner], (req: express.Request, res: express.Response) => {
     const associationId = req.params.id || req.query.id;
 
     AssociationDB.findByIdAndDelete(associationId)
