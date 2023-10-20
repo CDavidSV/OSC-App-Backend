@@ -7,7 +7,6 @@ const UserSchema = new Schema({
     email: { type: String, unique: true, sparse: true },
     phoneNumber: { type: String, unique: true, sparse: true },
     assocId: { type: String },
-    assocPerms: { type: Number },
     savedAssociations: { type: [String], default: [], ref: 'Association' }
 });
 
