@@ -56,6 +56,19 @@ router.post('/updateUsername', authenticateAccessToken, async (req: express.Requ
     });
 });
 
+router.get('/ownedAssociation', authenticateAccessToken, async (req: express.Request, res: express.Response) => {
+    const userId = req.user?.id;
+
+    try {
+        const assoc = await associationSchema.findOne({ ownerId: userId });
+        if (!assoc) return res.status(404).send({ status: "error", message: "Association not found" });
+    
+        return res.status(200).send({ status: "success", message: "Association found", data: assoc });
+    } catch {
+        return res.status(500).send({ status: "error", message: "Error while attempting to fetch association" });
+    }
+});
+
 router.get('/getSavedAssociations', authenticateAccessToken, async (req: express.Request, res: express.Response) => {
     // Fetch the user's saved associations.
     userSchema.findById(req.user!.id).populate('savedAssociations')

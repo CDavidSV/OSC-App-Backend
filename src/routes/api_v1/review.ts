@@ -86,13 +86,9 @@ router.post('/post', authenticateAccessToken, async (req: express.Request, res: 
     if (!mongoose.Types.ObjectId.isValid(assocId)) return res.status(400).json({ status: "error", message: "Invalid association id." });
 
     try {
-        // Check if the user has already posted a review.
-        const reviewExists = await reviewSchema.exists({ assocId: assocId, userId: req.user?.id });
-
         // Check if the association exists.
         const associationExists = await associationSchema.exists({ _id: assocId });
 
-        if (reviewExists) return res.status(400).json({ status: "error", message: "You have already posted a review for this association." });
         if (!associationExists) return res.status(400).json({ status: "error", message: "Association does not exist." });
 
         // Create the review in the database.
